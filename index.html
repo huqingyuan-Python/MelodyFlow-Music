@@ -1313,11 +1313,6 @@
       left: 22px;
     }
 
-    /* 迷你播放器 */
-    .mini-player {
-      display: none;
-    }
-
     /* 响应式 */
     @media (max-width: 1024px) {
       .sidebar {
@@ -2134,7 +2129,7 @@
                   {{ t.showRomaji }}
                 </label>
               </div>
-              <div class="lyrics-toggle">
+              <div class="lyrics-toggle" v-if="currentSong?.lyrics?.some(l => l.translation)">
                 <label>
                   <input type="checkbox" v-model="showTranslation">
                   {{ t.showTranslation }}
@@ -2770,20 +2765,23 @@
       const lines = [];
       const regex = /\[(\d{2}):(\d{2})\.(\d{2})\](.*)/g;
       let match;
-      
+
       while ((match = regex.exec(lrc)) !== null) {
         const minutes = parseInt(match[1]);
         const seconds = parseInt(match[2]);
         const milliseconds = parseInt(match[3]);
         const text = match[4].trim();
-        
+        // 只对纯日文行生成罗马音（无汉字混入）
+        const japaneseOnly = isJapanese(text) && !/[\u4e00-\u9fff]/.test(text);
+
         lines.push({
           time: minutes * 60 + seconds + milliseconds / 100,
           text: text,
-          romaji: isJapanese(text) ? textToRomaji(text) : ''
+          romaji: japaneseOnly ? textToRomaji(text) : '',
+          translation: ''
         });
       }
-      
+
       return lines;
     }
 
@@ -3369,28 +3367,39 @@
           const lrcSource = song?.lrc;
           const server = platform === 'tencent' ? 'tencent' : 'netease';
 
-          const parseLrcText = (lrcText) => {
-            const lines = lrcText.split('\n');
-            const lyrics = [];
-            for (const line of lines) {
-              const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
-              if (match) {
-                const min = parseInt(match[1]);
-                const sec = parseInt(match[2]);
-                const ms = parseInt(match[3].padEnd(3, '0'));
-                const time = min * 60 + sec + ms / 1000;
-                const text = match[4].trim();
-                if (text) {
-                  lyrics.push({
-                    time,
-                    text,
-                    romaji: isJapanese(text) ? textToRomaji(text) : '',
-                    translation: ''
-                  });
+          const parseLrcText = (lrcText, tlyricText = '') => {
+            // 解析原文和翻译歌词，提取时间标签后的内容
+            const parseRaw = (text) => {
+              const result = {};
+              const lines = text.split('\n');
+              for (const line of lines) {
+                const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+                if (match) {
+                  const time = parseInt(match[1]) * 60 + parseInt(match[2]) + parseInt(match[3].padEnd(3, '0')) / 1000;
+                  result[time] = match[4].trim();
                 }
               }
+              return result;
+            };
+
+            const rawLyrics = parseRaw(lrcText);
+            const rawTranslations = parseRaw(tlyricText);
+            const lyrics = [];
+
+            for (const [timeStr, text] of Object.entries(rawLyrics)) {
+              const time = parseFloat(timeStr);
+              if (!text) continue;
+              // 只对纯日文行生成罗马音
+              const japaneseOnly = isJapanese(text) && !/[\u4e00-\u9fff]/.test(text);
+              lyrics.push({
+                time,
+                text,
+                romaji: japaneseOnly ? textToRomaji(text) : '',
+                translation: rawTranslations[time] || ''
+              });
             }
-            return lyrics;
+
+            return lyrics.sort((a, b) => a.time - b.time);
           };
 
           // 如果有直接的 lrc URL
@@ -3412,8 +3421,10 @@
               const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
               if (!res.ok) continue;
               const data = await res.json();
+              // Meting API 返回数组: [0]=原文歌词, [1]=翻译歌词
               const lrcText = Array.isArray(data) ? data[0]?.lyric : data?.lyric;
-              if (lrcText) return parseLrcText(lrcText);
+              const tlyricText = Array.isArray(data) ? data[1]?.lyric : data?.tlyric;
+              if (lrcText) return parseLrcText(lrcText, tlyricText || '');
             } catch { /* 尝试下一个 */ }
           }
           return [];
@@ -3449,11 +3460,7 @@
             if (hasJapanese && settings.value.showRomajiByDefault) {
               showRomaji.value = true;
             }
-            // 如果有翻译，自动开启翻译显示
-            const hasTranslation = lyrics.some(l => l.translation);
-            if (hasTranslation) {
-              showTranslation.value = true;
-            }
+            // 翻译显示由用户手动控制，不再自动开启
             // 加入歌曲列表并播放
             const existing = songs.value.find(s => s.id === song.id);
             if (!existing) songs.value.push(song);
@@ -3662,10 +3669,7 @@
           if (hasJapanese && settings.value.showRomajiByDefault) {
             showRomaji.value = true;
           }
-          // 如果有翻译，自动开启
-          if (song.lyrics?.some(l => l.translation)) {
-            showTranslation.value = true;
-          }
+          // 翻译显示由用户手动控制，不再自动开启
 
           // 更新最近播放
           recentSongs.value = [song, ...recentSongs.value.filter(s => s.id !== song.id)].slice(0, 50);

@@ -1,4 +1,4 @@
-# MelodyFlow Music - Local Music Player
+# MelodyFlow Music - Online Music Player
 
 <div align="center">
   <img src="https://img.shields.io/badge/Platform-Web-blue.svg" alt="Platform">

@@ -1,4 +1,4 @@
-# MelodyFlow Music - 本地音乐播放器
+# MelodyFlow Music - 在线音乐播放器
 
 <div align="center">
   <img src="https://img.shields.io/badge/Platform-Web-blue.svg" alt="Platform">
@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Vue-3.0-brightgreen.svg" alt="Vue">
 </div>
 
-> 一款优雅的本地音乐播放器，支持在线搜索和本地文件播放，界面灵感来自 Apple Music
+> 一款优雅的音乐播放器，支持在线搜索和本地文件播放，界面灵感来自 Apple Music
 
 [English](README.en.md) | [日本語](README.ja.md)
 
