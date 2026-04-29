@@ -1,0 +1,12 @@
+{
+  "name": "melodyflow-music-server",
+  "version": "1.0.0",
+  "description": "MelodyFlow 多平台音乐API服务 - 支持网易云、QQ音乐",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["music", "api", "netease", "qqmusic"],
+  "author": "MelodyFlow",
+  "license": "MIT"
+}

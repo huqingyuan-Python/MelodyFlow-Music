@@ -6,38 +6,53 @@
   <img src="https://img.shields.io/badge/Vue-3.0-brightgreen.svg" alt="Vue">
 </div>
 
-> 🎵 An elegant local music player with Apple Music-inspired design, featuring lyrics, romaji support, and multi-language
+> An elegant local music player with Apple Music-inspired design, featuring lyrics, romaji support, and multi-language
 
-## ✨ Features
+## Features
 
 ### Core Features
-- 📁 **Local Music Import** - Import local audio files (MP3, AAC, WAV, etc.)
-- 🎨 **Apple Music Style UI** - Modern design, immersive experience
-- 🎵 **Lyrics Display** - LRC format support with auto-scroll sync
-- 🌸 **Japanese Romaji** - Optional romaji display for Japanese songs
-- 📋 **Playlists** - Create and manage custom playlists
-- ❤️ **Favorites** - One-click favorite songs
-- 🔍 **Search** - Quick search for songs, artists, albums
+- **Local Music Import** - Import local audio files (MP3, AAC, WAV, etc.)
+- **Online Music Search** - Search and play from NetEase Cloud Music, QQ Music
+- **Apple Music Style UI** - Modern design, immersive experience
+- **Lyrics Display** - LRC format support with auto-scroll sync
+- **Japanese Romaji** - Optional romaji display for Japanese songs
+- **Lyrics Translation** - Chinese translation for lyrics
+- **Playlists** - Create and manage custom playlists
+- **Favorites** - One-click favorite songs
+- **Playback Speed** - 0.5x ~ 2.0x speed control
+- **A-B Repeat** - Loop a section, great for language learning
+- **Sleep Timer** - Auto-stop after 15/30/45/60 minutes
+- **Mini Player** - Floating mini player window
+- **Keyboard Shortcuts** - Space to play/pause, arrow keys to control
+- **Song Download** - Download current playing song
+
+### Online Music
+- **NetEase Cloud Music** - Massive music library
+- **QQ Music** - Full QQ Music library support
+- **VIP Tracks Direct Play** - Play VIP songs without subscription
+- **Auto Cover Art** - Fetch album covers automatically
+- **Auto Lyrics** - Fetch lyrics automatically
 
 ### UI Features
-- 🎨 **Four Themes** - Dark, Light, Pink, Blue
-- 🌐 **Multi-language** - 中文、English、日本語
-- 📱 **Responsive** - Perfect for desktop and mobile
-- ✨ **Smooth Animations** - Fluid transitions
+- **Four Themes** - Dark, Light, Pink, Blue
+- **Multi-language** - Chinese, English, Japanese
+- **Responsive** - Perfect for desktop and mobile
+- **Smooth Animations** - Fluid transitions
+- **Full-screen Player** - Apple Music style lyrics view
 
 ### Data Management
-- 💾 **Local Storage** - All data saved in browser
-- 📤 **Export** - One-click backup
-- 📥 **Import** - Restore from backup
+- **Local Storage** - All data saved in browser
+- **Export** - One-click backup
+- **Import** - Restore from backup
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-git clone https://github.com/huqingyuan-Python/MelodyFlow.git
-cd MelodyFlow
+git clone https://github.com/huqingyuan-Python/MelodyFlow-Music.git
+cd MelodyFlow-Music
 open index.html
 ```
 
-## 📝 License
+## License
 
 MIT License - See [LICENSE](LICENSE)
