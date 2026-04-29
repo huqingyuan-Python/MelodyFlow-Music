@@ -7,8 +7,9 @@ setlocal EnableDelayedExpansion
 :: ============================================
 
 set "SCRIPT_DIR=%~dp0"
-set "SERVER_DIR=%SCRIPT_DIR%music-server"
-set "NODE_VER=0"
+set "MUSIC_DIR=%SCRIPT_DIR%music-server"
+set "USER_DIR=%SCRIPT_DIR%user-server"
+set "NODE_EXE="
 
 title MelodyFlow Music - 部署脚本
 
@@ -20,9 +21,8 @@ echo  ========================================
 echo.
 
 :: ===== 1. 检测 / 安装 Node.js =====
-echo [1/5] 检测 Node.js ...
+echo [1/7] 检测 Node.js ...
 
-set "NODE_EXE="
 if exist "C:\Program Files\nodejs\node.exe" (
     set "NODE_EXE=C:\Program Files\nodejs\node.exe"
 ) else if exist "C:\Program Files (x86)\nodejs\node.exe" (
@@ -56,35 +56,9 @@ if "!NODE_EXE!"=="" (
 for /f "delims=" %%v in ('!NODE_EXE! --version 2^>nul') do set "NODE_VER=%%v"
 echo   已安装: !NODE_EXE!  !NODE_VER!
 
-:: ===== 2. 检查 npm 版本 =====
-echo [2/5] 检查 npm ...
-for /f "delims=" %%n in ('!NODE_EXE! -v 2^>nul') do set "NPM_VER=%%n"
-echo   npm: !NPM_VER!
-
-:: ===== 3. 安装依赖（国内镜像）====
+:: ===== 2. 获取局域网 IP =====
 echo.
-echo [3/5] 安装依赖（使用 npmmirror 国内镜像）...
-
-cd /d "!SERVER_DIR!"
-
-if not exist "node_modules" (
-    echo   首次运行，正在安装...
-    "!NODE_EXE!" npm install --registry=https://registry.npmmirror.com
-    if errorlevel 1 (
-        echo   [警告] npmmirror 安装失败，尝试阿里镜像...
-        "!NODE_EXE!" npm install --registry=https://registry.npmmirror.com
-        if errorlevel 1 (
-            echo   [警告] 阿里镜像也失败了，尝试腾讯镜像...
-            "!NODE_EXE!" npm install --registry=https://mirrors.cloud.tencent.com/npm/
-        )
-    )
-) else (
-    echo   依赖已就绪，跳过
-)
-
-:: ===== 4. 获取局域网 IP =====
-echo.
-echo [4/5] 检测局域网 IP ...
+echo [2/7] 检测局域网 IP ...
 set "LAN_IP="
 for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /i "IPv4" ^| findstr /v "127.0.0.1"') do (
     for %%b in (%%a) do (
@@ -97,28 +71,74 @@ set "LAN_IP=!LAN_IP: =!"
 if "!LAN_IP!"=="" set "LAN_IP=127.0.0.1"
 echo   局域网 IP: !LAN_IP!
 
-:: ===== 5. 启动服务 =====
+:: ===== 3. 安装音乐服务依赖 =====
 echo.
-echo [5/5] 启动 MelodyFlow 音源服务 ...
+echo [3/7] 安装音乐服务依赖（npmmirror 镜像）...
+cd /d "!MUSIC_DIR!"
+if not exist "node_modules" (
+    echo   首次运行，正在安装...
+    "!NODE_EXE!" npm install --registry=https://registry.npmmirror.com
+    if errorlevel 1 (
+        echo   [警告] npmmirror 安装失败，尝试腾讯镜像...
+        "!NODE_EXE!" npm install --registry=https://mirrors.cloud.tencent.com/npm/
+    )
+) else (
+    echo   依赖已就绪，跳过
+)
+
+:: ===== 4. 安装用户服务依赖 =====
+echo.
+echo [4/7] 安装用户服务依赖（npmmirror 镜像）...
+cd /d "!USER_DIR!"
+if not exist "node_modules" (
+    echo   首次运行，正在安装...
+    "!NODE_EXE!" npm install --registry=https://registry.npmmirror.com
+    if errorlevel 1 (
+        echo   [警告] npmmirror 安装失败，尝试腾讯镜像...
+        "!NODE_EXE!" npm install --registry=https://mirrors.cloud.tencent.com/npm/
+    )
+) else (
+    echo   依赖已就绪，跳过
+)
+
+:: ===== 5. 安装用户服务头像目录 =====
+echo.
+echo [5/7] 检查用户数据目录 ...
+if not exist "!USER_DIR!\uploads" mkdir "!USER_DIR!\uploads"
+if not exist "!USER_DIR!\melodyflow.db" (
+    echo   数据库将在首次运行时自动创建
+)
+
+:: ===== 6. 启动用户服务（后台）=====
+echo.
+echo [6/7] 启动用户服务（端口 3001）...
+cd /d "!USER_DIR!"
+start "MelodyFlow 用户服务" cmd /c "!NODE_EXE! server.js"
+echo   用户服务已在后台启动（端口 3001）
+
+:: ===== 7. 启动音乐服务（前台）=====
+echo.
+echo [7/7] 启动音乐服务（端口 3000）...
 echo.
 echo  ================================================
-echo   服务地址 (本机): http://127.0.0.1:3000
-echo   服务地址 (局域网): http://!LAN_IP!:3000
+echo   音乐服务: http://127.0.0.1:3000
+echo   用户服务: http://127.0.0.1:3001
+echo   局域网 IP: !LAN_IP!
 echo.
 echo   前端使用: 直接打开项目目录中的 index.html
 echo   局域网访问: http://!LAN_IP!/index.html
 echo.
-echo   首次使用请在播放器设置中填写 API 地址:
-echo   API 地址: http://127.0.0.1:3000
+echo   注意: 用户服务已在后台运行（端口 3001）
+echo   如需停止，双击运行「停止服务.bat」，或关闭对应窗口
 echo.
-echo   按 Ctrl+C 停止服务
+echo   按 Ctrl+C 停止音乐服务（用户服务需手动关闭）
 echo  ================================================
 echo.
-echo  正在启动服务...
-echo.
 
-:: 延迟打开浏览器（给服务一点启动时间）
+:: 延迟打开浏览器
+timeout /t 3 /nobreak >nul
 start "" "http://127.0.0.1:3000/health"
 
-:: 启动服务
+:: 启动音乐服务（前台）
+cd /d "!MUSIC_DIR!"
 "!NODE_EXE!" server.js
